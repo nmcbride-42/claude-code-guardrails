@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claude-code-guardrails"
+version = "0.1.0"
+description = "A PreToolUse safety hook for Claude Code: back up dirty git trees before destructive ops, block the unrecoverable ones."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Nick McBride" }]
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["claude-code", "hooks", "ai-agents", "guardrails", "git", "safety"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+claude-code-guardrail = "claude_code_guardrails.guardrail:run"
+
+[project.urls]
+Homepage = "https://github.com/nmcbride-42/claude-code-guardrails"
+
+[tool.setuptools.packages.find]
+include = ["claude_code_guardrails*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

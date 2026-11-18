@@ -1,0 +1,12 @@
+{
+  "_comment": "Copy to ~/.config/claude-code-guardrails/config.json and edit. Every key is optional; omitted keys keep their defaults.",
+  "protected_branches": ["main", "master"],
+  "block_commit_on_protected_branch": true,
+  "protected_repos": [
+    { "name": "my-app", "paths": ["~/code/my-app", "/srv/my-app"] }
+  ],
+  "protected_paths": [],
+  "irreplaceable_paths": ["~/.claude", "~/.ssh", "~/.gnupg", "~/code/my-app/data"],
+  "remote": { "mode": "stash", "allowed_hosts": ["build-box"] },
+  "backup_untracked_cap_mb": 32
+}
