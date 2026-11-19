@@ -55,14 +55,15 @@ DEFAULT_CONFIG = {
     # Directories that cannot be recovered from git: deleting one of them OR
     # ANY ANCESTOR (e.g. `rm -rf ~` or `rm -rf data/..`) is blocked.
     "irreplaceable_paths": ["~/.claude", "~/.ssh", "~/.gnupg"],
-    # How to treat destructive git ops wrapped in `ssh <host> '...'`:
+    # How to treat destructive git ops wrapped in `ssh <host> '...'`
+    # (default "block": the safe choice when you haven't vetted the remote):
     #   "stash": check the remote tree over ssh (BatchMode) and `git stash push -u`
     #            it there if dirty; block if the remote cannot be verified.
     #   "block": block every destructive git op sent over ssh; the hook never
     #            opens an ssh connection itself.
     # allowed_hosts (stash mode only): if non-empty, hosts not listed are
     # treated as "block".
-    "remote": {"mode": "stash", "allowed_hosts": []},
+    "remote": {"mode": "block", "allowed_hosts": []},
     # Untracked files larger than this (total) are not archived: the hook
     # blocks instead, so you can back them up yourself.
     "backup_untracked_cap_mb": 32,
@@ -1245,7 +1246,7 @@ def _block(msg, event, **details):
 
 def _remote_mode_for(host):
     remote = get_config().get("remote", {})
-    mode = remote.get("mode", "stash")
+    mode = remote.get("mode", "block")
     allowed = remote.get("allowed_hosts") or []
     if mode == "stash" and allowed and host not in allowed:
         return "block"

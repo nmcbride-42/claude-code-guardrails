@@ -15,6 +15,8 @@ _P = "pu" + "sh"
 _RH = "--" + "hard"
 _REMOTE_RESET = "cd /work/app && git reset " + _RH
 
+STASH = {"remote": {"mode": "stash"}}  # opt-in mode; the default is "block"
+
 
 @pytest.mark.parametrize("cmd,inner", [
     (f"ssh devbox 'git -C /x {_P} --force origin main' 2>&1 | tail -1", f"git -C /x {_P} --force origin main"),
@@ -101,14 +103,14 @@ _QUOTED_DATA = [
 @pytest.mark.parametrize("cmd", _CHAIN_CASES + _UNCERTAIN_BOUNDARY)
 def test_remote_destructive_chain_blocked_when_remote_unverifiable(cmd, dirty_repo, tmp_path, fake_ssh):
     bindir, _ = fake_ssh(ok=False)
-    assert run_hook(cmd, dirty_repo, tmp_path, extra_path=bindir).returncode == 2
+    assert run_hook(cmd, dirty_repo, tmp_path, extra_path=bindir, config=STASH).returncode == 2
 
 
 @pytest.mark.parametrize("ssh_ok", [False, True])
 @pytest.mark.parametrize("cmd", _QUOTED_DATA + _UNCERTAIN_BOUNDARY)
 def test_quoted_data_and_uncertain_boundary_issue_no_side_effects(cmd, ssh_ok, dirty_repo, tmp_path, fake_ssh):
     bindir, trace = fake_ssh(ok=ssh_ok)
-    p = run_hook(cmd, dirty_repo, tmp_path, extra_path=bindir)
+    p = run_hook(cmd, dirty_repo, tmp_path, extra_path=bindir, config=STASH)
     assert p.returncode == 2
     if cmd in _QUOTED_DATA:
         assert trace.read_text() == ""
@@ -122,20 +124,20 @@ def test_quoted_data_and_uncertain_boundary_issue_no_side_effects(cmd, ssh_ok, d
 ])
 def test_ssh_plus_local_destructive_blocks_without_side_effects(cmd, dirty_repo, tmp_path, fake_ssh):
     bindir, trace = fake_ssh(ok=True)
-    p = run_hook(cmd, dirty_repo, tmp_path, extra_path=bindir)
+    p = run_hook(cmd, dirty_repo, tmp_path, extra_path=bindir, config=STASH)
     assert p.returncode == 2 and stash_count(dirty_repo) == 0 and trace.read_text() == ""
 
 
 def test_clean_remote_reset_is_allowed_after_a_remote_check(dirty_repo, tmp_path, fake_ssh):
     bindir, trace = fake_ssh(ok=True)
-    p = run_hook(f"ssh devbox '{_REMOTE_RESET}' 2>&1 | tail -1", dirty_repo, tmp_path, extra_path=bindir)
+    p = run_hook(f"ssh devbox '{_REMOTE_RESET}' 2>&1 | tail -1", dirty_repo, tmp_path, extra_path=bindir, config=STASH)
     assert p.returncode == 0 and stash_count(dirty_repo) == 0
     assert "git status --porcelain" in trace.read_text()
 
 
 def test_remote_reset_without_cd_is_blocked(dirty_repo, tmp_path, fake_ssh):
     bindir, trace = fake_ssh(ok=True)
-    p = run_hook(f"ssh devbox 'git reset {_RH}'", dirty_repo, tmp_path, extra_path=bindir)
+    p = run_hook(f"ssh devbox 'git reset {_RH}'", dirty_repo, tmp_path, extra_path=bindir, config=STASH)
     assert p.returncode == 2 and "target repo is unknown" in p.stderr and trace.read_text() == ""
 
 
@@ -218,3 +220,10 @@ def test_scan_deadline_blocks(dirty_repo, tmp_path, fake_ssh):
     bindir, trace = fake_ssh(ok=True)
     p = run_hook("echo hi; ssh devbox 'df -h'", dirty_repo, tmp_path, extra_path=bindir, src=src)
     assert p.returncode == 2 and trace.read_text() == "" and stash_count(dirty_repo) == 0
+
+
+def test_default_remote_mode_blocks_without_ssh(dirty_repo, tmp_path, fake_ssh):
+    bindir, trace = fake_ssh(ok=True)
+    p = run_hook(f"ssh devbox '{_REMOTE_RESET}'", dirty_repo, tmp_path, extra_path=bindir)
+    assert p.returncode == 2 and "blocked by configuration" in p.stderr
+    assert trace.read_text() == ""
