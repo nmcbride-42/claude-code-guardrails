@@ -126,7 +126,7 @@ Environment variables (also listed in [`.env.example`](.env.example)):
 
 ## Limits
 
-- **Interactive sessions only.** In our use, PreToolUse hooks did not fire for headless print-mode runs (`claude -p`). Verify this on your Claude Code version. Until you have, assume headless agents get no protection from this hook and sandbox them some other way.
+- **Headless runs are covered only if they load the hook.** On Claude Code 2.1.327, PreToolUse hooks do fire in print mode (`claude -p`), but only hooks in the settings that run actually loads. A headless agent launched with isolated settings (for example `--setting-sources ""`) gets no protection unless you pass the hook in with `--settings`. Older versions behaved differently in our use, so test it on yours: a hook that appends to a file, plus `claude -p "run: echo test"`, shows it in seconds.
 - **Bash tool only.** The hook sees what the Bash tool runs. It doesn't see file edits made through the Edit or Write tools, or anything a script does once it's running. A destructive op inside a script file (`./cleanup.sh`) is invisible to it.
 - **Denylist, not a sandbox.** The hook catches the destructive shapes it knows. A determined or adversarial process can get around a regex-and-tokenizer guard (for example by building a command from variables at runtime). Treat it as a seatbelt against honest mistakes, not as a security boundary.
 - **The remote stash is a real `git stash push -u`.** Unlike the local backup, it clears the remote tree before the destructive op runs. The op would have discarded those changes anyway, but it is a side effect on another machine. Set `remote.mode` to `block` if you don't want that.
