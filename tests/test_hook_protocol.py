@@ -64,7 +64,7 @@ def test_load_config_merges_over_defaults(tmp_path):
     cfg = tmp_path / "c.json"
     cfg.write_text(json.dumps({"_comment": "ignored", "remote": {"allowed_hosts": ["devbox"]}}))
     c = sg.load_config(str(cfg))
-    assert c["remote"] == {"mode": "stash", "allowed_hosts": ["devbox"]}
+    assert c["remote"] == {"mode": "block", "allowed_hosts": ["devbox"]}
     assert c["protected_branches"] == ["main", "master"]
     cfg.write_text(json.dumps({"remote": {"mode": "yolo"}}))
     with pytest.raises(sg.ConfigError):

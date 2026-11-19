@@ -110,7 +110,7 @@ Configuration is optional, and the defaults are reasonable. The hook reads `$CLA
 | `protected_repos` | Named repos whose checkout paths cannot be recursively deleted *as themselves*. Their subpaths (`build/`, `node_modules/`) stay deletable. |
 | `protected_paths` | Extra directories with the same "exact root" protection. `/`, `/home`, `/Users` and your home directory are always protected. |
 | `irreplaceable_paths` | Data git can't bring back. Deleting the path **or any ancestor** of it is blocked. |
-| `remote.mode` | `stash`: for a destructive git op sent as `ssh host 'cd <repo> && …'`, check the remote tree over ssh (BatchMode) and `git stash push -u` it there if it's dirty. If the remote can't be inspected, block. `block`: block every destructive git op sent over ssh, and never open an ssh connection from the hook. |
+| `remote.mode` | Default `block`. `stash`: for a destructive git op sent as `ssh host 'cd <repo> && …'`, check the remote tree over ssh (BatchMode) and `git stash push -u` it there if it's dirty. If the remote can't be inspected, block. `block`: block every destructive git op sent over ssh, and never open an ssh connection from the hook. Opt into `stash` only for remotes you trust the hook to run `git stash push -u` on (the example config does this for one named host). |
 | `remote.allowed_hosts` | In `stash` mode, hosts not listed (when the list is non-empty) are treated as `block`. |
 | `backup_untracked_cap_mb` | When untracked files total more than this, the hook blocks instead of archiving them. |
 
